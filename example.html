@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StorageJS Example Usages</title>
+    <script src="storage.js"></script>
+</head>
+<body>
+    
+    <script>
+        const storageJS = new StorageJS('test_db');
+        async function testAsync() {
+            console.log('TESTING - START');
+            let d = await storageJS.table('preferences').setData('test_data','data testing 1');
+            console.log(`data "${d}" add/updated!`);
+            d = await storageJS.table('preferences').getData('test_data');
+            console.log(`data "${d}"`);
+            console.log('TESTING - END');
+        }
+        function test() {
+            console.log('TESTING - START');
+            storageJS.table('preferences').setData('test_data','data testing 1').then(d => console.log(`data "${d}" add/updated!`));
+            storageJS.table('preferences').getData('test_data').then(d => console.log(`data "${d}"`));
+            console.log('TESTING - END');
+        }
+        async function testStoreObject() {
+            console.log('SETTING OBJECT');
+            let d = await storageJS.table('preferences').setData('test_data_obj',{name:'obj 2',updated:Date.now()});
+            console.log(`data "${d}" add/updated!`);
+            d = await storageJS.table('preferences').getData('test_data_obj');
+            console.log('data',d);
+            console.log('SETTING OBJECT - ENDED');
+        }
+        // testAsync();
+        // test();
+        // testStoreObject();
+    </script>
+</body>
+</html>
