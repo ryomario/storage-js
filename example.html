@@ -32,6 +32,12 @@
             console.log('data',d);
             console.log('SETTING OBJECT - ENDED');
         }
+        function testGetAll() {
+            console.log('TESTING - START');
+            storageJS.table('preferences').getAllInTurn(d => console.log(`data`,d));
+            console.log('TESTING - END');
+        }
+        testGetAll();
         // testAsync();
         // test();
         // testStoreObject();

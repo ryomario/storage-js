@@ -76,6 +76,26 @@
                 }
             });
         }
+        async getAllInTurn(onsuccess=null,onerror=null) {
+            try {
+                const objectStore = this._t.objectStore(this.tablename);
+                const request = objectStore.openCursor();
+                request.onerror = function(ev) {
+                    throw request.error;
+                }
+                request.onsuccess = function(ev) {
+                    const cursor = request.result;
+                    if(cursor){
+                        if(typeof onsuccess === 'function')onsuccess(getObjectValue(cursor.value));
+                        cursor.continue();
+                    }
+                }
+                return [];
+            } catch (error) {
+                if(typeof onerror === 'function')onerror(request.error);
+                else throw error;
+            }
+        }
     
         static create(db, tablename, type) {
             return new Promise((resolve, reject) => {
@@ -148,18 +168,44 @@
         }
         table(tablename) {
             const $this = this;
-            async function getData(id) {
-                const transaction = await $this.openTransaction(tablename);
-                const data = await transaction.get(id);
-                return data;
+            async function getData(id,onsuccess=null,onerror=null) {
+                try {
+                    const transaction = await $this.openTransaction(tablename);
+                    const data = await transaction.get(id);
+                    if(typeof onsuccess === 'function')onsuccess(data);
+                    return data;
+                } catch (error) {
+                    if(typeof onerror === 'function')onerror(error);
+                    else console.error(error);
+                }
             }
-            async function setData(id, data) {
-                const transaction = await $this.openTransaction(tablename);
-                const result = await transaction.set(id,data);
-                return result;
+            async function setData(id, data,onsuccess=null,onerror=null) {
+                try {
+                    const transaction = await $this.openTransaction(tablename);
+                    const result = await transaction.set(id,data);
+                    if(typeof onsuccess === 'function')onsuccess(result);
+                    return result;
+                } catch (error) {
+                    if(typeof onerror === 'function')onerror(error);
+                    else console.error(error);
+                }
+            }
+            async function getAllInTurn(onsuccess=null,onerror=null) {
+                try {
+                    const transaction = await $this.openTransaction(tablename);
+                    const allData = [];
+                    transaction.getAllInTurn(d => {
+                        if(typeof onsuccess === 'function')onsuccess(d);
+                    });
+                    return allData;
+                } catch (error) {
+                    if(typeof onerror === 'function')onerror(error);
+                    else console.error(error);
+                }
             }
 
             return {
+                getAllInTurn,
                 getData,
                 setData,
             }
