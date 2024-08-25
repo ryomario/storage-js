@@ -76,25 +76,27 @@
                 }
             });
         }
-        async getAllInTurn(onsuccess=null,onerror=null) {
-            try {
+        getAll(onsuccess=null,onerror=null) {
+            return new Promise((resolve, reject) => {
                 const objectStore = this._t.objectStore(this.tablename);
                 const request = objectStore.openCursor();
                 request.onerror = function(ev) {
-                    throw request.error;
+                    if(typeof onerror === 'function')onerror(request.error);
+                    else reject(request.error);
                 }
+                const allData = {};
                 request.onsuccess = function(ev) {
                     const cursor = request.result;
                     if(cursor){
-                        if(typeof onsuccess === 'function')onsuccess(getObjectValue(cursor.value));
+                        const data = getObjectValue(cursor.value);
+                        allData[cursor.key] = data;
+                        if(typeof onsuccess === 'function')onsuccess(data);
                         cursor.continue();
+                    }else{
+                        resolve(allData);
                     }
                 }
-                return [];
-            } catch (error) {
-                if(typeof onerror === 'function')onerror(request.error);
-                else throw error;
-            }
+            });
         }
     
         static create(db, tablename, type) {
@@ -190,12 +192,11 @@
                     else console.error(error);
                 }
             }
-            async function getAllInTurn(onsuccess=null,onerror=null) {
+            async function getAllInTurn(onloadeddata=null,onerror=null) {
                 try {
                     const transaction = await $this.openTransaction(tablename);
-                    const allData = [];
-                    transaction.getAllInTurn(d => {
-                        if(typeof onsuccess === 'function')onsuccess(d);
+                    const allData = await transaction.getAll(d => {
+                        if(typeof onloadeddata === 'function')onloadeddata(d);
                     });
                     return allData;
                 } catch (error) {
